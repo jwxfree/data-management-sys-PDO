@@ -1,5 +1,11 @@
 <?php
 include 'core/dbConfig.php';
+include 'logAction.php';
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: index.php");
+    exit();
+}
 
 if (isset($_GET['id'])) {
     $project_id = $_GET['id'];
@@ -18,6 +24,7 @@ if (isset($_GET['id'])) {
 
         $stmt = $pdo->prepare("UPDATE Projects SET client_id = ?, name = ?, description = ?, status = ?, start_date = ?, end_date = ?, budget = ? WHERE project_id = ?");
         $stmt->execute([$client_id, $name, $description, $status, $start_date, $end_date, $budget, $project_id]);
+        logAction($pdo, 'UPDATE', 'projects', $project_id, 'Updated project details');
 
         header("Location: projects.php");
         exit;

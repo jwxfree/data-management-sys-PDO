@@ -1,9 +1,14 @@
 <?php
 include 'core/dbConfig.php';
+include 'logAction.php';
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: index.php");
+    exit();
+}
 
 $employeeId = $_GET['id'];
 
-// Fetch employee data for the specified ID
 $stmt = $pdo->prepare("SELECT * FROM Employees WHERE employee_id = ?");
 $stmt->execute([$employeeId]);
 $employee = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -21,11 +26,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $salary = $_POST['salary'];
     $department = $_POST['department'];
 
-    // Update employee in the database
+    $oldValues = "First Name: {$employee['first_name']}, Last Name: {$employee['last_name']}, Email: {$employee['email']}, 
+                  Phone: {$employee['phone']}, Role: {$employee['role']}, Salary: {$employee['salary']}, Department: {$employee['department']}";
+
     $stmt = $pdo->prepare("UPDATE Employees SET first_name = ?, last_name = ?, email = ?, phone = ?, role = ?, salary = ?, department = ? WHERE employee_id = ?");
     $stmt->execute([$firstName, $lastName, $email, $phone, $role, $salary, $department, $employeeId]);
 
-    header('Location: employees.php'); // Redirect to the employees page after successful update
+    logAction($pdo, 'UPDATE', 'employees', $employeeId, "Updated employee details. Previous values: {$oldValues}");
+
+    header('Location: employees.php');
     exit();
 }
 ?>
@@ -38,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <h1>Edit Employee</h1>
-    <form method="POST" action="edit_employee.php?id=<?= htmlspecialchars($employeeId); ?>">
+    <form method="POST" action="editEmployee.php?id=<?= htmlspecialchars($employeeId); ?>">
         <label for="first_name">First Name:</label>
         <input type="text" id="first_name" name="first_name" value="<?= htmlspecialchars($employee['first_name']); ?>" required>
         

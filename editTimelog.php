@@ -1,5 +1,11 @@
 <?php
 include 'core/dbConfig.php';
+include 'logAction.php';
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: index.php");
+    exit();
+}
 
 if (isset($_GET['id'])) {
     $log_id = $_GET['id'];
@@ -16,6 +22,7 @@ if (isset($_GET['id'])) {
 
         $stmt = $pdo->prepare("UPDATE TimeLogs SET employee_id = ?, task_id = ?, log_date = ?, hours = ?, description = ? WHERE log_id = ?");
         $stmt->execute([$employee_id, $task_id, $log_date, $hours, $description, $log_id]);
+        logAction($pdo, 'UPDATE', 'timelogs', $client_id, 'Updated timelog record');
 
         header("Location: timelogs.php");
         exit;
@@ -43,7 +50,6 @@ if (isset($_GET['id'])) {
         <label>Description: <textarea name="description"><?= htmlspecialchars($timelog['description']) ?></textarea></label><br>
         <button type="submit">Update Time Log</button>
         <button type="button" onclick="window.location.href='timelogs.php'">Back</button>
-
     </form>
 </body>
 </html>

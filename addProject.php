@@ -1,5 +1,13 @@
 <?php
+session_start();
 include 'core/dbConfig.php';
+include 'logAction.php';
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: index.php");
+    exit();
+}
+
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $client_id = $_POST['client_id'];
@@ -12,6 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $stmt = $pdo->prepare("INSERT INTO Projects (client_id, name, description, status, start_date, end_date, budget) VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([$client_id, $name, $description, $status, $start_date, $end_date, $budget]);
+    $recordId = $pdo->lastInsertId();
+    logAction($pdo, 'INSERT', 'projects', $recordId, 'Added a new project');
 
     header("Location: projects.php");
     exit;

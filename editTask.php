@@ -1,5 +1,11 @@
 <?php
 include 'core/dbConfig.php';
+include 'logAction.php';
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: index.php");
+    exit();
+}
 
 if (isset($_GET['id'])) {
     $task_id = $_GET['id'];
@@ -18,6 +24,7 @@ if (isset($_GET['id'])) {
 
         $stmt = $pdo->prepare("UPDATE Tasks SET project_id = ?, name = ?, assigned_to = ?, status = ?, start_date = ?, end_date = ?, priority = ? WHERE task_id = ?");
         $stmt->execute([$project_id, $name, $assigned_to, $status, $start_date, $end_date, $priority, $task_id]);
+        logAction($pdo, 'UPDATE', 'tasks', $task_id, 'Updated task details');
 
         header("Location: tasks.php");
         exit;
@@ -59,7 +66,6 @@ if (isset($_GET['id'])) {
         </label><br>
         <button type="submit">Update Task</button>
         <button type="button" onclick="window.location.href='tasks.php'">Back</button>
-
     </form>
 </body>
 </html>

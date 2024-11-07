@@ -1,5 +1,12 @@
 <?php
+session_start();
 include 'core/dbConfig.php';
+include 'logAction.php';
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: index.php");
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $employee_id = $_POST['employee_id'];
@@ -10,6 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $stmt = $pdo->prepare("INSERT INTO TimeLogs (employee_id, task_id, log_date, hours, description) VALUES (?, ?, ?, ?, ?)");
     $stmt->execute([$employee_id, $task_id, $log_date, $hours, $description]);
+    $recordId = $pdo->lastInsertId();
+    logAction($pdo, 'INSERT', 'timelogs', $recordId, 'Added a new timelog record');
 
     header("Location: timelogs.php");
     exit;

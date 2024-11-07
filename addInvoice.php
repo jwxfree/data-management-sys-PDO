@@ -1,5 +1,13 @@
 <?php
+session_start();
 include 'core/dbConfig.php';
+include 'logAction.php';
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: index.php");
+    exit();
+}
+
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $project_id = $_POST['project_id'];
@@ -10,6 +18,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $stmt = $pdo->prepare("INSERT INTO Invoices (project_id, amount, issued_date, due_date, status) VALUES (?, ?, ?, ?, ?)");
     $stmt->execute([$project_id, $amount, $issued_date, $due_date, $status]);
+    $recordId = $pdo->lastInsertId();
+
+    $stmt = $pdo ->prepare("SELECT invoice_id from Invoices WHERE invoice_id = ?");
+    $stmt->execute([$recordId]);
+    $invoice = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if($invoice){
+        logAction($pdo, 'INSERT', 'invoices', $recordId, "Added a new invoice {$invoice['invoice_id']}" );
+    }
 
     header("Location: invoices.php");
     exit;

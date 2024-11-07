@@ -1,5 +1,11 @@
 <?php
 include 'core/dbConfig.php';
+include 'logAction.php';
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: index.php");
+    exit();
+}
 
 if (isset($_GET['id'])) {
     $invoice_id = $_GET['id'];
@@ -16,6 +22,7 @@ if (isset($_GET['id'])) {
 
         $stmt = $pdo->prepare("UPDATE Invoices SET project_id = ?, amount = ?, issued_date = ?, due_date = ?, status = ? WHERE invoice_id = ?");
         $stmt->execute([$project_id, $amount, $issued_date, $due_date, $status, $invoice_id]);
+        logAction($pdo, 'UPDATE', 'invoices', $invoice_id, 'Updated invoice record');
 
         header("Location: invoices.php");
         exit;
@@ -32,7 +39,6 @@ if (isset($_GET['id'])) {
     <meta charset="UTF-8">
     <title>Edit Invoice</title>
     <link rel="stylesheet" href="style.css">
-
 </head>
 <body>
     <h2>Edit Invoice</h2>
@@ -50,7 +56,6 @@ if (isset($_GET['id'])) {
         </label><br>
         <button type="submit">Update Invoice</button>
         <button type="button" onclick="window.location.href='invoices.php'">Back</button>
-
     </form>
 </body>
 </html>

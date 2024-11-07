@@ -1,5 +1,13 @@
 <?php
+session_start();
 include 'core/dbConfig.php';
+include 'logAction.php';
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: index.php");
+    exit();
+}
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $firstName = $_POST['first_name'];
@@ -12,7 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt = $pdo->prepare("INSERT INTO Employees (first_name, last_name, email, phone, role, salary, department) VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([$firstName, $lastName, $email, $phone, $role, $salary, $department]);
-
+    $recordId = $pdo->lastInsertId();
+    logAction($pdo, 'INSERT', 'employees', $recordId, 'Added a new employee record');
     header('Location: employees.php');
     exit();
 }
@@ -26,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <h1>Add New Employee</h1>
-    <form method="POST" action="add_employee.php">
+    <form method="POST" action="addEmployee.php">
         <label for="first_name">First Name:</label>
         <input type="text" id="first_name" name="first_name" required>
         

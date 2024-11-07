@@ -1,5 +1,12 @@
 <?php
+session_start();
 include 'core/dbConfig.php';
+include 'logAction.php';
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: index.php");
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $project_id = $_POST['project_id'];
@@ -12,6 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $stmt = $pdo->prepare("INSERT INTO Tasks (project_id, name, assigned_to, status, start_date, end_date, priority) VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([$project_id, $name, $assigned_to, $status, $start_date, $end_date, $priority]);
+    $recordId = $pdo->lastInsertId();
+    logAction($pdo, 'INSERT', 'tasks', $recordId, 'Added a new taskeeeee record');
 
     header("Location: tasks.php");
     exit;

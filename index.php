@@ -1,34 +1,43 @@
 <?php
-session_start(); // Start the session
+session_start();
+include 'core/dbConfig.php'; 
 
-// Check if the user is already logged in
-if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
-    // Redirect to the dashboard if already logged in
-    header('Location: dashboard.php'); // Adjust this path to your dashboard
+if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
+    header('Location: clients.php'); 
     exit;
 }
 
-// Initialize variables for login
 $username = $password = "";
 $login_error = "";
+$registartion_success ="";
 
-// Handle form submission
+if (isset($_SESSION['registration_success'])) {
+    echo "<p style='color: green; text-align: center;'>Registration successful! You can now log in.</p>";
+    unset($_SESSION['registration_success']);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Check if the credentials match
-    if ($username === 'admin' && $password === 'admin') {
-        // Store session variable and redirect to the dashboard
-        $_SESSION['loggedin'] = true;
-        $_SESSION['username'] = $username; // You can store more user info if needed
-        header('Location: clients.php'); // Adjust this path to your dashboard
-        exit;
+    // Check the database for matching user
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt->execute([$username]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user && password_verify($password, $user['password'])) {
+        // Store user_id and username in session
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['logged_in'] = true;
+
+        header("Location: clients.php");
     } else {
-        $login_error = "Invalid username or password.";
+        echo "Invalid credentials!";
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -52,11 +61,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <button type="submit" style="margin: 0 0 1em 0">Login</button>
         <hr>
+        <p style="margin: .5em 0 0 0; text-align:center;">Don’t have an account? <a href="registration.php">Register here</a></p>
+
         <p style="margin: .5em 0 0 0; text-align:center;">Forgot credentials? Contact IT support</p>
     </form>
     
     <?php if ($login_error): ?>
-        <p style="color: red;"><?= htmlspecialchars($login_error); ?></p>
+        <p style="color: red; margin: 1rem 0 0 40rem"><?= htmlspecialchars($login_error); ?></p>
+    <?php endif; ?>
+    <?php if ($registartion_success): ?>
+        <p style="color: red; margin: 1rem 0 0 40rem"><?= htmlspecialchars($registartion_success); ?></p>
     <?php endif; ?>
 </body>
 </html>

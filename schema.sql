@@ -70,6 +70,27 @@ CREATE TABLE Invoices (
 );
 
 
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE audit_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    action_type VARCHAR(50), 
+    table_name VARCHAR(50),  
+    record_id INT,          
+    added_by VARCHAR(50),
+    last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    details TEXT,           
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+
+
+
 -- Insert data into Clients
 INSERT INTO Clients (name, contact_name, contact_email, contact_phone, address, industry)
 VALUES 

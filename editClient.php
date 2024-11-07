@@ -1,5 +1,11 @@
 <?php
 include 'core/dbConfig.php';
+include 'logAction.php';
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: index.php");
+    exit();
+}
 
 $clientId = $_GET['id'];
 
@@ -19,8 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address = $_POST['address'];
     $industry = $_POST['industry'];
 
+    $oldValues = "Name: {$client['name']}, Contact Name: {$client['contact_name']}, Contact Email: {$client['contact_email']}, 
+                  Contact Phone: {$client['contact_phone']}, Address: {$client['address']}, Industry: {$client['industry']}";
+
     $stmt = $pdo->prepare("UPDATE Clients SET name = ?, contact_name = ?, contact_email = ?, contact_phone = ?, address = ?, industry = ? WHERE client_id = ?");
     $stmt->execute([$name, $contactName, $contactEmail, $contactPhone, $address, $industry, $clientId]);
+
+    logAction($pdo, 'UPDATE', 'Clients', $clientId, "Updated client details. Previous values: {$oldValues}");
 
     header('Location: clients.php'); 
     exit();
